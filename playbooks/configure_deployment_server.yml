@@ -1,0 +1,29 @@
+---
+- name: Fix Cluster Manager Deployment Client functionality
+  hosts: clustermanager
+  become: true
+  tasks:
+    - name: Remove deploymentclient.conf from /etc/system/local
+      shell:
+        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
+    - name: Push apps manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/cluster_master_apps/
+        dest: /opt/splunk/etc/apps/
+
+- name: Fix Deployer Deployment Client functionality
+  hosts: shdeployer
+  become: true
+  tasks:
+    - name: Remove deploymentclient.conf from /etc/system/local
+      shell:
+        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
+
+- name: Configure Deployment Server functionality
+  hosts: my_ds
+  become: true 
+  tasks:
+    - name: Copy local deployment_apps contents to /etc/deployment-apps on Deployment Server 
+      synchronize:
+        src: /opt/deployment-apps/apps/
+        dest: /opt/splunk/etc/deployment-apps/
