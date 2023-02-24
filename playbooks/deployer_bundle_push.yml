@@ -1,0 +1,10 @@
+---
+- name: Push Deployer Bundle to Search Heads
+  hosts: shdeployer
+  become: true
+  vars_files:
+    - /opt/deployment-apps/splunk_creds.yml
+  tasks:
+    - name: Apply Bundle push
+      command:
+        cmd: /opt/splunk/bin/splunk apply shcluster-bundle -preserve-lookups true --answer-yes -auth "{{ splunk_username }}":"{{ splunk_password }}" -target https://ec2-3-81-105-32.compute-1.amazonaws.com:8089

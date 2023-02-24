@@ -1,0 +1,10 @@
+---
+- name: Push Cluster Bundle to Peer Nodes
+  hosts: clustermanager
+  become: true
+  vars_files:
+    - /opt/deployment-apps/splunk_creds.yml
+  tasks:
+    - name: Apply Cluster Bundle
+      command:
+        cmd: /opt/splunk/bin/splunk apply cluster-bundle --answer-yes --skip-validation -auth "{{ splunk_username }}":"{{ splunk_password }}"

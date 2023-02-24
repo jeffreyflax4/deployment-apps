@@ -1,70 +1,4 @@
 ---
-- name: Fix Cluster Manager Deployment Client functionality
-  hosts: clustermanager
-  become: true
-  tasks:
-    - name: Remove deploymentclient.conf from /etc/system/local
-      command:
-        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
-    - name: Push apps manually to /etc/apps
-      synchronize:
-        src: /opt/deployment-apps/cluster_master_apps/
-        dest: /opt/splunk/etc/apps/
-    - name: Fix permissions
-      command:
-        cmd: chown -R splunk:splunk /opt/splunk
-    - name: Restart Splunk
-      command:
-        cmd: /opt/splunk/bin/splunk restart
-
-- name: Fix Deployer Deployment Client functionality
-  hosts: shdeployer
-  become: true
-  tasks:
-    - name: Remove deploymentclient.conf from /etc/system/local
-      command:
-        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
-    - name: Push apps manually to /etc/apps
-      synchronize:
-        src: /opt/deployment-apps/deployer_apps/
-        dest: /opt/splunk/etc/apps/
-    - name: Fix permissions
-      command:
-        cmd: chown -R splunk:splunk /opt/splunk
-    - name: Restart Splunk
-      command:
-        cmd: /opt/splunk/bin/splunk restart
-
-- name: Configure Deployment Server as a forwarder
-  hosts: my_ds
-  become: true
-  tasks:
-    - name: Push app manually to /etc/apps
-      synchronize:
-        src: /opt/deployment-apps/apps/ansible_all_forwarder_outputs
-        dest: /opt/splunk/etc/apps/
-    - name: Fix permissions
-      command:
-        cmd: chown -R splunk:splunk /opt/splunk
-    - name: Restart Splunk
-      command:
-        cmd: /opt/splunk/bin/splunk restart
-
-- name: Configure Peer Nodes
-  hosts: indexer
-  become: true
-  tasks:
-    - name: Push app manually to /etc/apps
-      synchronize:
-        src: /opt/deployment-apps/apps/ansible_cluster_indexer_base
-        dest: /opt/splunk/etc/apps/
-    - name: Fix permissions
-      command:
-        cmd: chown -R splunk:splunk /opt/splunk      
-    - name: Restart Splunk
-      command:
-        cmd: /opt/splunk/bin/splunk restart
-
 - name: Configure Deployment Server functionality
   hosts: my_ds
   become: true 
@@ -75,6 +9,7 @@
       synchronize:
         src: /opt/deployment-apps/apps/
         dest: /opt/splunk/etc/deployment-apps/
+    - name: Copy local serverclass.conf contents to /etc/system/local on Deployment Server
       synchronize:
         src: /opt/deployment-apps/serverclass.conf
         dest: /opt/splunk/etc/system/local/
@@ -84,23 +19,3 @@
     - name: Reload Deployment Server
       command:
         cmd: /opt/splunk/bin/splunk reload deploy-server -auth "{{ splunk_username }}":"{{ splunk_password }}"
-
-- name: Push Cluster Bundle to Peer Nodes
-  hosts: clustermanager
-  become: true
-  vars_files:
-    - /opt/deployment-apps/splunk_creds.yml
-  tasks:
-    - name: Apply Cluster Bundle
-      command:
-        cmd: /opt/splunk/bin/splunk apply cluster-bundle --answer-yes --skip-validation -auth "{{ splunk_username }}":"{{ splunk_password }}"
-
-- name: Push Deployer Bundle to Search Heads
-  hosts: shdeployer
-  become: true
-  vars_files:
-    - /opt/deployment-apps/splunk_creds.yml
-  tasks:
-    - name: Apply Bundle push
-      command:
-        cmd: /opt/splunk/bin/splunk apply shcluster-bundle -preserve-lookups true --answer-yes -auth "{{ splunk_username }}":"{{ splunk_password }}" -target https://ec2-3-81-105-32.compute-1.amazonaws.com:8089

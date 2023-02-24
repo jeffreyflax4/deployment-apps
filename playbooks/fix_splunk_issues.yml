@@ -1,0 +1,85 @@
+---
+- name: Fix Cluster Manager Deployment Client functionality
+  hosts: clustermanager
+  become: true
+  tasks:
+    - name: Remove deploymentclient.conf from /etc/system/local
+      command:
+        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
+      notify: restart splunk
+    - name: Push apps manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/cluster_master_apps/
+        dest: /opt/splunk/etc/apps/
+      notify: restart splunk
+    - name: Fix permissions
+      command:
+        cmd: chown -R splunk:splunk /opt/splunk
+      notify: restart splunk
+  handlers:
+    - name: restart splunk
+      command:
+        cmd: /opt/splunk/bin/splunk restart
+
+- name: Fix Deployer Deployment Client functionality
+  hosts: shdeployer
+  become: true
+  tasks:
+    - name: Remove deploymentclient.conf from /etc/system/local
+      command:
+        cmd: rm -rf /opt/splunk/etc/system/local/deploymentclient.conf
+      notify: restart splunk
+    - name: Push apps manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/deployer_apps/
+        dest: /opt/splunk/etc/apps/
+      notify: restart splunk
+    - name: Fix permissions
+      command:
+        cmd: chown -R splunk:splunk /opt/splunk
+      notify: restart splunk
+  handlers:
+    - name: restart splunk
+      command:
+        cmd: /opt/splunk/bin/splunk restart
+
+- name: Configure Deployment Server as a forwarder
+  hosts: my_ds
+  become: true
+  tasks:
+    - name: Push app manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/apps/ansible_all_forwarder_outputs
+        dest: /opt/splunk/etc/apps/
+      notify: restart splunk
+    - name: Push linux inputs app manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/apps/ansible_linux_inputs
+        dest: /opt/splunk/etc/apps
+      notify: restart splunk
+    - name: Fix permissions
+      command:
+        cmd: chown -R splunk:splunk /opt/splunk
+      notify: restart splunk
+  handlers:
+    - name: restart splunk
+      command:
+        cmd: /opt/splunk/bin/splunk restart
+
+- name: Configure Peer Nodes
+  hosts: indexer
+  become: true
+  tasks:
+    - name: Push app manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/apps/ansible_cluster_indexer_base
+        dest: /opt/splunk/etc/apps/
+      notify: restart splunk
+    - name: Fix permissions
+      command:
+        cmd: chown -R splunk:splunk /opt/splunk      
+      notify: restart splunk
+  handlers:
+    - name: restart splunk
+      command:
+        cmd: /opt/splunk/bin/splunk restart
