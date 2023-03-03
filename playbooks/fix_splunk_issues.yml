@@ -57,6 +57,11 @@
         src: /opt/deployment-apps/apps/ansible_linux_inputs
         dest: /opt/splunk/etc/apps
       notify: restart splunk
+    - name: Push cluster search base app manually to /etc/apps
+      synchronize:
+        src: /opt/deployment-apps/apps/ansible_cluster_search_base 
+        dest: /opt/splunk/etc/apps
+      notify: restart splunk
     - name: Fix permissions
       command:
         cmd: chown -R splunk:splunk /opt/splunk
