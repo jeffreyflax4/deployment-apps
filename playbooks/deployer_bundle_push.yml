@@ -7,4 +7,4 @@
   tasks:
     - name: Apply Bundle push
       command:
-        cmd: /opt/splunk/bin/splunk apply shcluster-bundle -preserve-lookups true --answer-yes -auth "{{ splunk_username }}":"{{ splunk_password }}" -target https://ec2-54-91-59-78.compute-1.amazonaws.com:8089
+        cmd: /opt/splunk/bin/splunk apply shcluster-bundle -preserve-lookups true --answer-yes -auth "{{ splunk_username }}":"{{ splunk_password }}" -target https://ec2-54-89-124-19.compute-1.amazonaws.com:8089
